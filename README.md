@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NutriScan AI
 
-## Getting Started
+NutriScan AI is a Next.js 16 App Router application for AI-assisted meal analysis with authentication, MongoDB persistence, meal history, and personalized health insights.
 
-First, run the development server:
+## Local Development
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy the example environment file and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Start the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Required Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+These are defined in `.env.example`:
 
-## Learn More
+- `MONGO_URI`: MongoDB connection string
+- `NEXTAUTH_SECRET`: random secret used by NextAuth
+- `NEXTAUTH_URL`: public app URL, for example `http://localhost:3000` locally or your production domain
+- `AI_PROVIDER`: `mock`, `claude`, `openai`, or `gemini`
+- `ANTHROPIC_API_KEY`: required if `AI_PROVIDER=claude`
+- `ANTHROPIC_MODEL`: optional Claude model override
+- `GOOGLE_ID` / `GOOGLE_SECRET`: required if using Google login
+- `GITHUB_ID` / `GITHUB_SECRET`: required if using GitHub login
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This app must be deployed as a Node.js server target because it uses:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- NextAuth session handling
+- MongoDB-backed API routes
+- dynamic server rendering
 
-## Deploy on Vercel
+It should not be deployed as a static export.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Recommended: Vercel
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Push the repo to GitHub.
+2. Import the project into Vercel.
+3. Add all environment variables from `.env.example` in the Vercel project settings.
+4. Set `NEXTAUTH_URL` to your production domain, for example `https://your-domain.com`.
+5. Deploy.
+
+Vercel will run the existing scripts:
+
+```bash
+npm run build
+npm run start
+```
+
+If you want to deploy from the CLI instead of the Vercel dashboard:
+
+```bash
+npm i -g vercel
+vercel
+vercel --prod
+```
+
+### Self-Hosting / Node Server
+
+This project is configured with `output: "standalone"` in `next.config.ts`, which makes Node or Docker deployment easier.
+
+Build and run:
+
+```bash
+npm run build
+npm run start:standalone
+```
+
+### Docker
+
+Build the image:
+
+```bash
+docker build -t nutriscan-ai .
+```
+
+Run the container:
+
+```bash
+docker run -p 3000:3000 --env-file .env.local nutriscan-ai
+```
+
+For production, pass your real environment variables from your hosting platform instead of mounting `.env.local`.
+
+### Production Checklist
+
+- Use a production MongoDB database
+- Set a strong `NEXTAUTH_SECRET`
+- Set the correct `NEXTAUTH_URL`
+- Add OAuth provider keys if you want Google or GitHub sign-in
+- If you do not configure OAuth, keep using credentials login only
+- If you use `AI_PROVIDER=claude`, make sure the Anthropic key has billing or credits available
+
+## Notes
+
+- The app supports `mock` AI mode, which is useful for testing deployments before adding a live AI provider.
+- If `npm run build` fails locally with a `.next` lock error, stop any running dev server first and retry.
